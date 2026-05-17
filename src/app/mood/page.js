@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiShare2, FiCheck } from 'react-icons/fi';
 import API from '@/lib/api';
+import Navbar from '@/components/Navbar';
+import MovieCard from '@/components/MovieCard';
 import '@/styles/Movies.css';
 
 const MOOD_SUGGESTIONS = [
@@ -15,12 +18,16 @@ const MOOD_SUGGESTIONS = [
   'Romantic and dreamy'
 ];
 
-export default function MoodPage() {
-  const [mood, setMood] = useState('');
+function MoodPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialMood = searchParams.get('q') || '';
+
+  const [mood, setMood] = useState(initialMood);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const router = useRouter();
+  const [shared, setShared] = useState(false);
 
   const submit = async (text) => {
     const value = (text ?? mood).trim();
@@ -30,6 +37,11 @@ export default function MoodPage() {
     }
     setError('');
     setLoading(true);
+
+    const params = new URLSearchParams(window.location.search);
+    params.set('q', value);
+    router.replace(`/mood?${params.toString()}`, { scroll: false });
+
     try {
       const res = await API.post('/recommendations/mood', { mood: value });
       setResult(res.data);
@@ -42,6 +54,14 @@ export default function MoodPage() {
     }
   };
 
+  // Auto-submit when arriving with ?q=
+  useEffect(() => {
+    if (initialMood && !result && !loading) {
+      submit(initialMood);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     submit();
@@ -52,15 +72,19 @@ export default function MoodPage() {
     submit(text);
   };
 
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="movies-container">
-      <nav className="navbar">
-        <h1>WatchWise</h1>
-        <div className="nav-right">
-          <button className="nav-btn" onClick={() => router.push('/movies')}>Browse</button>
-          <button className="nav-btn" onClick={() => router.push('/auth/login')}>Login</button>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="content" style={{ paddingTop: 32 }}>
         <motion.div
@@ -72,7 +96,7 @@ export default function MoodPage() {
             What are you in the mood for?
           </h2>
           <p style={{ color: '#a78bfa', marginBottom: 24 }}>
-            Describe how you feel or what you want to watch. We'll find movies that match.
+            Describe how you feel or what you want to watch. We&apos;ll find movies that match.
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -87,9 +111,9 @@ export default function MoodPage() {
             />
             <button
               type="submit"
-              className="nav-btn"
+              className="filter-apply"
               disabled={loading}
-              style={{ alignSelf: 'center', padding: '12px 32px', fontSize: '1rem' }}
+              style={{ alignSelf: 'center', width: 'auto', padding: '12px 32px', fontSize: '1rem' }}
             >
               {loading ? 'Finding movies…' : 'Find movies'}
             </button>
@@ -124,44 +148,26 @@ export default function MoodPage() {
               exit={{ opacity: 0 }}
               style={{ marginTop: 48 }}
             >
-              <h3 className="section-title" style={{ marginBottom: 16 }}>
-                Picks for &ldquo;{result.mood}&rdquo;
-                {result.matchedGenres?.length > 0 && (
-                  <span style={{ fontSize: '0.85rem', color: '#a78bfa', marginLeft: 12, fontWeight: 'normal' }}>
-                    ({result.matchedGenres.join(', ')})
-                  </span>
-                )}
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                <h3 className="section-title" style={{ marginBottom: 0 }}>
+                  Picks for &ldquo;{result.mood}&rdquo;
+                  {result.matchedGenres?.length > 0 && (
+                    <span style={{ fontSize: '0.85rem', color: '#a78bfa', marginLeft: 12, fontWeight: 'normal' }}>
+                      ({result.matchedGenres.join(', ')})
+                    </span>
+                  )}
+                </h3>
+                <button onClick={handleShare} className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {shared ? <><FiCheck size={14} /> Copied!</> : <><FiShare2 size={14} /> Share</>}
+                </button>
+              </div>
 
               {result.results.length === 0 ? (
                 <div className="no-results"><p>No matches found. Try rephrasing your mood.</p></div>
               ) : (
                 <div className="movies-grid">
                   {result.results.map(movie => (
-                    <motion.div
-                      key={movie.tmdbId}
-                      className="movie-card"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className="movie-poster">
-                        <img
-                          src={movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Poster'}
-                          alt={movie.title}
-                          onError={(e) => { e.target.src = 'https://via.placeholder.com/300x450?text=No+Poster'; }}
-                        />
-                      </div>
-                      <div className="movie-info">
-                        <h3>{movie.title}</h3>
-                        <div className="movie-rating">Rating: {movie.rating}/10</div>
-                        <div className="movie-year">{movie.release_year}</div>
-                        <div className="movie-genres">
-                          {movie.genre?.slice(0, 2).map(g => (
-                            <span key={g} className="genre-tag">{g}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
+                    <MovieCard key={movie.tmdbId} movie={movie} />
                   ))}
                 </div>
               )}
@@ -170,5 +176,13 @@ export default function MoodPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function MoodPage() {
+  return (
+    <Suspense fallback={<div className="loading">Loading…</div>}>
+      <MoodPageInner />
+    </Suspense>
   );
 }
