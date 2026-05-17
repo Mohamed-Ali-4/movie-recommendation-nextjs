@@ -34,7 +34,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-bg-overlay"></div>
       <div className="auth-navbar">
-        <h1 className="auth-logo">CineAI</h1>
+        <h1 className="auth-logo">WatchWise</h1>
       </div>
       <div className="auth-wrapper">
         <div className="auth-box">
