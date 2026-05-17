@@ -24,7 +24,7 @@ export default function LoginPage() {
       login(response.data.user, response.data.token);
       router.push('/movies');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed. Check your email and password.');
     } finally {
       setLoading(false);
     }
@@ -32,34 +32,48 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-bg-overlay"></div>
+      <div className="auth-bg-overlay" />
       <div className="auth-navbar">
-        <h1 className="auth-logo">WatchWise</h1>
+        <Link href="/" className="auth-logo">WatchWise</Link>
       </div>
       <div className="auth-wrapper">
         <div className="auth-box">
-          <h2>Sign In</h2>
-          <p className="auth-subtitle">Welcome back! Sign in to get your personalized movie recommendations.</p>
+          <h2>Welcome back</h2>
+          <p className="auth-subtitle">Sign in to get your personalised movie picks.</p>
           {error && <div className="error-box">{error}</div>}
           <form onSubmit={handleLogin} className="auth-form">
             <div className="input-group">
-              <input type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
             </div>
             <div className="input-group">
-              <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
             </div>
             <button type="submit" className="auth-btn" disabled={loading}>
               {loading ? (
                 <span className="btn-loading">
-                  <span className="spinner"></span>
-                  Signing in...
+                  <span className="spinner" />
+                  Signing in…
                 </span>
-              ) : 'Sign In'}
+              ) : 'Sign in'}
             </button>
           </form>
-          <div className="auth-divider"><span>New to CineAI?</span></div>
-          <Link href="/auth/signup" className="auth-secondary-btn">Create an Account</Link>
-          <p className="auth-terms">By signing in, you agree to our Terms of Service and Privacy Policy.</p>
+          <div className="auth-divider">New to WatchWise?</div>
+          <Link href="/auth/signup" className="auth-secondary-btn">Create an account</Link>
+          <p className="auth-terms">By continuing you agree to our Terms of Service and Privacy Policy.</p>
         </div>
       </div>
     </div>
