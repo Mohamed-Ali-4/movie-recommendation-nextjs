@@ -42,11 +42,11 @@ export default function SignupPage() {
   return (
     <div className="auth-page">
       <div className="auth-bg-overlay"></div>
-      <div className="auth-navbar"><h1 className="auth-logo">CineAI</h1></div>
+      <div className="auth-navbar"><h1 className="auth-logo">WatchWise</h1></div>
       <div className="auth-wrapper">
         <div className="auth-box auth-box-wide">
           <h2>Create Account</h2>
-          <p className="auth-subtitle">Join CineAI and discover movies you will love!</p>
+          <p className="auth-subtitle">Join WatchWise and discover movies you will love!</p>
           {error && <div className="error-box">{error}</div>}
           <form onSubmit={handleSignup} className="auth-form">
             <div className="input-group"><input type="text" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} required /></div>

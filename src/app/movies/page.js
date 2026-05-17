@@ -64,7 +64,7 @@ export default function MoviesPage() {
   return (
     <div className="movies-container">
       <nav className="navbar">
-        <h1>CineAI</h1>
+        <h1>WatchWise</h1>
         <div className="nav-right">
           <span className="nav-user">Welcome, {user?.name}!</span>
           <button className="nav-btn" onClick={() => setShowFilters(!showFilters)}>Filters</button>

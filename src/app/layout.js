@@ -2,7 +2,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import './globals.css';
 
 export const metadata = {
-  title: 'CineAI - AI Movie Recommendations',
+  title: 'WatchWise - AI Movie Recommendations',
   description: 'Discover movies with AI',
 };
 
