@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/auth/login');
+    router.replace('/mood');
   }, [router]);
 
   return null;
