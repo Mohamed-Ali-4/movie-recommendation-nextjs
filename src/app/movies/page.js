@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useContext, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiFilter } from 'react-icons/fi';
 import API from '@/lib/api';
-import { AuthContext } from '@/context/AuthContext';
+import Navbar from '@/components/Navbar';
+import MovieCard from '@/components/MovieCard';
 import '@/styles/Movies.css';
+import '@/styles/Detail.css';
 
 const DEFAULT_FILTERS = { genre: '', minRating: 0, year: '' };
 
@@ -20,13 +21,7 @@ export default function MoviesPage() {
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { user, logout, loading: authLoading } = useContext(AuthContext);
-  const router = useRouter();
   const requestIdRef = useRef(0);
-
-  useEffect(() => {
-    if (!authLoading && !user) router.push('/auth/login');
-  }, [user, authLoading, router]);
 
   const buildEndpoint = (query, genre, pageNum) => {
     const params = new URLSearchParams({ page: String(pageNum) });
@@ -63,12 +58,11 @@ export default function MoviesPage() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
     const handle = setTimeout(() => {
       loadMovies(searchQuery.trim(), appliedFilters.genre, 1, false);
     }, searchQuery ? 400 : 0);
     return () => clearTimeout(handle);
-  }, [user, searchQuery, appliedFilters.genre, loadMovies]);
+  }, [searchQuery, appliedFilters.genre, loadMovies]);
 
   const handleLoadMore = () => {
     if (page >= totalPages || loadingMore) return;
@@ -86,17 +80,11 @@ export default function MoviesPage() {
     setShowFilters(false);
   };
 
-  const handleLogout = () => { logout(); router.push('/auth/login'); };
-
   const visibleMovies = movies.filter(m => {
     if (appliedFilters.minRating > 0 && (m.rating || 0) < appliedFilters.minRating) return false;
     if (appliedFilters.year && String(m.release_year) !== String(appliedFilters.year)) return false;
     return true;
   });
-
-  if (authLoading || !user) {
-    return (<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#a78bfa', fontSize: '1.2rem' }}>Loading...</div>);
-  }
 
   const headerLabel = searchQuery
     ? `Results for "${searchQuery}"`
@@ -106,23 +94,25 @@ export default function MoviesPage() {
 
   return (
     <div className="movies-container">
-      <nav className="navbar">
-        <h1>WatchWise</h1>
-        <div className="nav-right">
-          <span className="nav-user">Welcome, {user?.name}!</span>
-          <button className="nav-btn" onClick={() => setShowFilters(!showFilters)}>Filters</button>
-          <button className="nav-btn nav-logout" onClick={handleLogout}>Logout</button>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="search-section">
-        <input
-          type="text"
-          placeholder="Search movies by title..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
-        />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <input
+            type="text"
+            placeholder="Search movies by title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          <button
+            className="nav-btn"
+            onClick={() => setShowFilters(!showFilters)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <FiFilter /> Filters
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -162,19 +152,7 @@ export default function MoviesPage() {
           <>
             <div className="movies-grid">
               {visibleMovies.map(movie => (
-                <motion.div key={movie.tmdbId} className="movie-card" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                  <div className="movie-poster">
-                    <img src={movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Poster'} alt={movie.title} onError={(e) => { e.target.src = 'https://via.placeholder.com/300x450?text=No+Poster'; }} />
-                  </div>
-                  <div className="movie-info">
-                    <h3>{movie.title}</h3>
-                    <div className="movie-rating">Rating: {movie.rating}/10</div>
-                    <div className="movie-year">{movie.release_year}</div>
-                    <div className="movie-genres">
-                      {movie.genre?.slice(0, 2).map(g => (<span key={g} className="genre-tag">{g}</span>))}
-                    </div>
-                  </div>
-                </motion.div>
+                <MovieCard key={movie.tmdbId} movie={movie} />
               ))}
             </div>
             {page < totalPages && (
