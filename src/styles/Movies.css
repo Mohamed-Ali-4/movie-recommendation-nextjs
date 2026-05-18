@@ -43,6 +43,13 @@
   gap: 0.5rem;
 }
 
+/* Desktop links: hidden by default, shown on tablet+ */
+.nav-links-desktop {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .nav-user {
   color: #94a3b8;
   font-size: 0.8rem;
@@ -445,6 +452,11 @@
   .movies-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   .movie-info h3 { font-size: 0.88rem; }
   .nav-user { display: block; }
+}
+
+@media (min-width: 640px) {
+  .nav-links-desktop { display: flex; }
+  .nav-hamburger { display: none; }
 }
 
 @media (min-width: 768px) {

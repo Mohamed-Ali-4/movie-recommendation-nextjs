@@ -18,10 +18,8 @@ export default function Navbar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  // Close drawer on route change
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Prevent body scroll when drawer is open
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
@@ -42,26 +40,7 @@ export default function Navbar() {
           <h1>WatchWise</h1>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="nav-right" style={{ display: 'none' }} id="nav-desktop">
-          {NAV_LINKS.map(l => (
-            <Link key={l.href} href={l.href} className={`nav-btn${isActive(l.href) ? ' nav-btn-active' : ''}`}>
-              {l.label}
-            </Link>
-          ))}
-          {user ? (
-            <>
-              <span className="nav-user">Hi, {user.name}</span>
-              <button className="nav-btn nav-logout" onClick={handleLogout}>Logout</button>
-            </>
-          ) : (
-            <Link href="/auth/login" className="nav-btn">Login</Link>
-          )}
-        </div>
-
-        {/* Responsive nav using CSS */}
-        <div className="nav-right nav-right-responsive">
-          {/* Show full links on tablet+ */}
+        <div className="nav-right">
           <div className="nav-links-desktop">
             {NAV_LINKS.map(l => (
               <Link key={l.href} href={l.href} className={`nav-btn${isActive(l.href) ? ' nav-btn-active' : ''}`}>
@@ -78,7 +57,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Hamburger for mobile */}
           <button
             className={`nav-hamburger${open ? ' open' : ''}`}
             onClick={() => setOpen(v => !v)}
@@ -92,7 +70,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile drawer */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -110,7 +87,7 @@ export default function Navbar() {
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.22 }}
             >
-              <button className="nav-drawer-close" onClick={() => setOpen(false)} aria-label="Close menu">✕</button>
+              <button className="nav-drawer-close" onClick={() => setOpen(false)} aria-label="Close menu">&times;</button>
               {NAV_LINKS.map(l => (
                 <Link key={l.href} href={l.href} className={`nav-btn${isActive(l.href) ? ' nav-btn-active' : ''}`}>
                   {l.label}
@@ -134,15 +111,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <style>{`
-        .nav-links-desktop { display: none; align-items: center; gap: 0.5rem; }
-        .nav-right-responsive { display: flex; align-items: center; gap: 0.5rem; }
-        @media (min-width: 640px) {
-          .nav-links-desktop { display: flex; }
-          .nav-hamburger { display: none; }
-        }
-      `}</style>
     </>
   );
 }

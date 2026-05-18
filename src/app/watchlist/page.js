@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FiTrash2 } from 'react-icons/fi';
 import Navbar from '@/components/Navbar';
 import MovieCard from '@/components/MovieCard';
 import { getWatchlist } from '@/lib/watchlist';
 import '@/styles/Movies.css';
-import '@/styles/Detail.css';
 
 export default function WatchlistPage() {
   const [items, setItems] = useState([]);
@@ -32,7 +30,7 @@ export default function WatchlistPage() {
         <h2 className="section-title">Your watchlist ({items.length})</h2>
 
         {!hydrated ? (
-          <div className="loading">Loading…</div>
+          <div className="loading">Loading&hellip;</div>
         ) : items.length === 0 ? (
           <div className="empty-state">
             <h3>Nothing saved yet</h3>
