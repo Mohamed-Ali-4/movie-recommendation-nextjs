@@ -1,10 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useContext, useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AuthContext } from '@/context/AuthContext';
 
 const NAV_LINKS = [
   { href: '/mood', label: 'Mood' },
@@ -13,9 +12,7 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const { user, logout } = useContext(AuthContext) || {};
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setOpen(false); }, [pathname]);
@@ -25,11 +22,6 @@ export default function Navbar() {
     else document.body.style.overflow = '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
-
-  const handleLogout = () => {
-    logout?.();
-    router.push('/');
-  };
 
   const isActive = (href) => pathname === href;
 
@@ -47,14 +39,6 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
-            {user ? (
-              <>
-                <span className="nav-user">Hi, {user.name}</span>
-                <button className="nav-btn nav-logout" onClick={handleLogout}>Logout</button>
-              </>
-            ) : (
-              <Link href="/auth/login" className="nav-btn">Login</Link>
-            )}
           </div>
 
           <button
@@ -93,20 +77,6 @@ export default function Navbar() {
                   {l.label}
                 </Link>
               ))}
-              {user ? (
-                <>
-                  <span style={{ color: '#94a3b8', fontSize: '0.85rem', padding: '0.5rem 0.25rem' }}>
-                    Signed in as {user.name}
-                  </span>
-                  <button className="nav-btn nav-logout" onClick={handleLogout} style={{ width: '100%', justifyContent: 'flex-start', padding: '0.875rem 1rem', fontSize: '1rem' }}>
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <Link href="/auth/login" className="nav-btn" style={{ width: '100%', justifyContent: 'flex-start', padding: '0.875rem 1rem', fontSize: '1rem' }}>
-                  Login
-                </Link>
-              )}
             </motion.div>
           </motion.div>
         )}
