@@ -2,6 +2,9 @@ const TMDB_BASE = 'https://api.themoviedb.org/3';
 const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
 const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
 
+// Fallback TMDB key. Override by setting TMDB_API_KEY in Vercel env vars.
+const FALLBACK_TMDB_KEY = 'cc9f91432c0827e27f5c1de3618f6dc6';
+
 export const GENRE_MAP = {
   28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy',
   80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family',
@@ -15,8 +18,7 @@ export const GENRE_NAME_TO_ID = Object.fromEntries(
 );
 
 async function tmdbGet(path, params = {}, revalidate = 300) {
-  const key = process.env.TMDB_API_KEY;
-  if (!key) throw new Error('TMDB_API_KEY env var is not set on this deployment.');
+  const key = process.env.TMDB_API_KEY || FALLBACK_TMDB_KEY;
   const url = new URL(`${TMDB_BASE}${path}`);
   url.searchParams.set('api_key', key);
   url.searchParams.set('language', 'en-US');
