@@ -7,7 +7,6 @@ import API from '@/lib/api';
 import Navbar from '@/components/Navbar';
 import MovieCard from '@/components/MovieCard';
 import '@/styles/Movies.css';
-import '@/styles/Detail.css';
 
 const DEFAULT_FILTERS = { genre: '', minRating: 0, year: '' };
 
@@ -21,25 +20,20 @@ export default function MoviesPage() {
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [apiError, setApiError] = useState('');
   const requestIdRef = useRef(0);
 
   const buildEndpoint = (query, genre, pageNum) => {
     const params = new URLSearchParams({ page: String(pageNum) });
-    if (query) {
-      params.set('q', query);
-      return `/tmdb/search?${params.toString()}`;
-    }
-    if (genre) {
-      params.set('genre', genre);
-      return `/tmdb/discover?${params.toString()}`;
-    }
-    return `/tmdb/popular?${params.toString()}`;
+    if (query) { params.set('q', query); return `/tmdb/search?${params}`; }
+    if (genre) { params.set('genre', genre); return `/tmdb/discover?${params}`; }
+    return `/tmdb/popular?${params}`;
   };
 
   const loadMovies = useCallback(async (query, genre, pageNum, append) => {
     const reqId = ++requestIdRef.current;
     if (append) setLoadingMore(true);
-    else setLoading(true);
+    else { setLoading(true); setApiError(''); }
     try {
       const res = await API.get(buildEndpoint(query, genre, pageNum));
       if (reqId !== requestIdRef.current) return;
@@ -47,13 +41,11 @@ export default function MoviesPage() {
       setTotalPages(res.data.total_pages || 1);
       setPage(res.data.page || pageNum);
     } catch (err) {
-      console.error('Error fetching movies:', err);
-      if (!append) setMovies([]);
+      if (reqId !== requestIdRef.current) return;
+      const msg = err.response?.data?.message || err.message || 'Failed to load movies';
+      if (!append) { setMovies([]); setApiError(msg); }
     } finally {
-      if (reqId === requestIdRef.current) {
-        setLoading(false);
-        setLoadingMore(false);
-      }
+      if (reqId === requestIdRef.current) { setLoading(false); setLoadingMore(false); }
     }
   }, []);
 
@@ -69,16 +61,8 @@ export default function MoviesPage() {
     loadMovies(searchQuery.trim(), appliedFilters.genre, page + 1, true);
   };
 
-  const handleApplyFilters = () => {
-    setAppliedFilters(filters);
-    setShowFilters(false);
-  };
-
-  const handleClearFilters = () => {
-    setFilters(DEFAULT_FILTERS);
-    setAppliedFilters(DEFAULT_FILTERS);
-    setShowFilters(false);
-  };
+  const handleApplyFilters = () => { setAppliedFilters(filters); setShowFilters(false); };
+  const handleClearFilters = () => { setFilters(DEFAULT_FILTERS); setAppliedFilters(DEFAULT_FILTERS); setShowFilters(false); };
 
   const visibleMovies = movies.filter(m => {
     if (appliedFilters.minRating > 0 && (m.rating || 0) < appliedFilters.minRating) return false;
@@ -88,9 +72,7 @@ export default function MoviesPage() {
 
   const headerLabel = searchQuery
     ? `Results for "${searchQuery}"`
-    : appliedFilters.genre
-      ? `${appliedFilters.genre} movies`
-      : 'Popular movies';
+    : appliedFilters.genre ? `${appliedFilters.genre} movies` : 'Popular movies';
 
   return (
     <div className="movies-container">
@@ -105,11 +87,7 @@ export default function MoviesPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
-          <button
-            className="nav-btn"
-            onClick={() => setShowFilters(!showFilters)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
+          <button className="nav-btn" onClick={() => setShowFilters(!showFilters)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <FiFilter /> Filters
           </button>
         </div>
@@ -148,6 +126,11 @@ export default function MoviesPage() {
         <h2 className="section-title">{headerLabel} ({visibleMovies.length})</h2>
         {loading ? (
           <div className="loading">Loading movies...</div>
+        ) : apiError ? (
+          <div className="no-results">
+            <p style={{ color: '#f87171', marginBottom: 8 }}>Could not load movies.</p>
+            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>{apiError}</p>
+          </div>
         ) : visibleMovies.length > 0 ? (
           <>
             <div className="movies-grid">
@@ -164,7 +147,7 @@ export default function MoviesPage() {
             )}
           </>
         ) : (
-          <div className="no-results"><p>No movies found. Try a different search or filters!</p></div>
+          <div className="no-results"><p>No movies found. Try a different search or filters.</p></div>
         )}
       </div>
     </div>
